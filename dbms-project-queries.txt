@@ -1,0 +1,154 @@
+create table student(
+ sid varchar2(20) primary key,
+ sname varchar2(20),
+ dept varchar2(20),
+ year varchar2(20),
+ sec varchar2(20));
+ 
+ 
+ create table subject(
+ subcode varchar2(20) primary key,
+ dept varchar2(20),
+ year varchar2(20),
+ subname varchar2(20));
+ 
+ 
+ create table teacher(
+ tid varchar2(20) primary key,
+ tname varchar2(20),
+ dept varchar2(20));
+ 
+ 
+ create table routine(
+ dept varchar2(20) NOT NULL,
+ day varchar2(20) NOT NULL,
+ year varchar2(20) NOT NULL,
+ sec varchar2(20) NOT NULL,
+ p1 varchar2(50),
+ p2 varchar2(50),
+ p3 varchar2(50),
+ p4 varchar2(50),
+ p5 varchar2(50),
+ p6 varchar2(50),
+ primary key(dept,day,year,sec));
+ 
+ 
+ 
+ create table t_routine(
+ tid varchar2(20) NOT NULL,
+ day varchar2(20) NOT NULL,
+ p1 varchar2(20),
+ p2 varchar2(20),
+ p3 varchar2(20),
+ p4 varchar2(20),
+ p5 varchar2(20),
+ p6 varchar2(20),
+ foreign key(tid) references teacher(tid),
+ primary key(tid,day));
+ 
+ 
+ 
+ create table attendance(
+ a_date varchar2(20) NOT NULL,
+ subcode varchar2(20),
+ s_id varchar2(20),
+ attend varchar2(20), 
+ foreign key(s_id) references student(sid),
+ foreign key(subcode) references subject(subcode),
+ primary key(a_date,subcode,s_id));
+ 
+ 
+ insert into student values('s100','sambit','cse','3rd','b');
+ 
+ insert into student values('s101','arijit','it','3rd','a');
+ 
+ insert into student values('s102','ratul','cse','3rd','a');
+ 
+ insert into student values('s103','sagar','cse','3rd','b');
+ 
+ insert into student values('s104','diptam','cse','3rd','a');
+ 
+ insert into subject values('cs601','cse','3rd','graphics');
+ 
+ insert into subject values('cs602','cse','3rd','dbms');
+ 
+ insert into subject values('cs603','cse','3rd','os');
+ 
+ insert into subject values('cs604','cse','3rd','multimedia');
+ 
+ insert into subject values('cs610','cse','3rd','os-lab');
+ 
+ insert into subject values('cs611','cse','3rd','network-lab');
+ 
+ insert into subject values('cs612','cse','3rd','dbms-lab');
+ 
+ insert into teacher values('t01','ssg','cse');
+ 
+ insert into teacher values('t02','sg','cse');
+ 
+ insert into teacher values('t03','kb','cse');
+ 
+ insert into teacher values('t04','sch','cse');
+ 
+ insert into routine values('cse','wed','3rd','a','os_kb','multimedia_sch','graphics_sg','lab-c1:ntwrk lab c2:os lab','lab','lab');
+ 
+ insert into t_routine values('t02','wed','3rd-a-graphics','','3rd-b-graphics','','','');
+ 
+ insert into t_routine values('t02','thu','','','','3rd-b-graphics','3rd-a-graphics','');
+ 
+ insert into attendance values('05-MAR-15','cs603','s100','p');
+ 
+ insert into attendance values('04-MAR-15','cs603','s103','p');
+ 
+ insert into attendance values('06-MAR-15','cs603','s100','p');
+ 
+ insert into attendance values('06-MAR-15','cs603','s101','a');
+ 
+ insert into attendance values('07-MAR-15','cs603','s100','a');
+ 
+ create or replace procedure routine_s(x in routine.dept%type,y in routine.year%type,z in routine.sec%type,res out sys_refcursor) 
+ as
+  
+  begin
+ open res for
+ select day,p1 "9.20am-10.20am",p2 "10.20am-11.20am",p3 "11.20am-12.20am",p4"1.00pm-2.00pm",p5 " 2.00pm-3.00pm",p6 "3.00pm-4.00pm" from routine where dept=x and year=y and sec=z;
+
+  end;
+/
+SQL>variable res refcursor; 
+SQL>exec routine_s('cse','3rd','a',:res);
+SQL>print res;
+
+
+
+create or replace procedure routine_t(x in teacher.tname%type,res out sys_refcursor) 
+as
+   
+   
+  begin
+   open res for
+   select day,p1,p2,p3,p4,p5,p6 from t_routine where tid in(select tid from teacher where tname=x);
+   end;
+/
+ 
+SQL>variable res refcursor; 
+SQL>exec routine_t('sg',:rs);
+SQL>print res;
+	
+	
+create or replace procedure attend_s(w in student.dept%type,x in student.year%type,y in student.sec%type,z in attendance.subcode%type,res out sys_refcursor) 
+as
+  
+  begin
+  open res for
+  select s_id,count(attend) "attendance" from attendance a inner join student s on a.s_id=s.sid where s_id in(select sid from student where dept=w and year=x and sec=y) and subcode=z and attend='p' group by a.s_id;
+   end;
+/
+
+SQL>variable res refcursor; 
+SQL>exec attend_s('cse','3rd','b','cs603',:res);
+SQL>print res;	
+
+
+
+                                                                                                                                         
